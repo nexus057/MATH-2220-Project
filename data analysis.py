@@ -21,26 +21,21 @@ cols = data["Person2"].map(index).to_numpy()
 A[rows, cols] = 1
 A[cols, rows] = 1
 
-# Labelled version (names as row/column headers), saved for reference
 pd.DataFrame(A, index=people, columns=people).to_csv("adjacency_matrix.csv")
 
-# ---- 3. Ask for the two people ----
-you = input("Your name: ").strip()
-recipient = input("Recipient's name: ").strip()
+# ---- Ask for the two people ----
+person1 = input("Your name: ").strip()
+person2 = input("Recipient's name: ").strip()
 
-if you not in index or recipient not in index:
+if person1 not in index or person2 not in index:
     raise SystemExit("One of those names isn't in the data.")
 
-s, t = index[you], index[recipient]
+s, t = index[person1], index[person2]
 
-# ---- 4. Degrees of separation via powers of A ----
-# (A^k)[i, j] = number of walks of length k from person i to person j.
-# The degree of separation is the smallest k with (A^k)[s, t] > 0.
-# Column t of A^k is A^k e_t, which we build one step at a time:
-#     A^k e_t = A (A^(k-1) e_t)
+# ---- Degrees of separation via powers of A ----
 e_t = np.zeros(n, dtype=np.int64)
 e_t[t] = 1
-columns = [e_t]  # columns[k] = column t of A^k
+columns = [e_t]
 
 distance = None
 for k in range(n):
@@ -52,9 +47,7 @@ for k in range(n):
 if distance is None:
     raise SystemExit("These two people aren't connected.")
 
-# ---- 5. Recover a shortest path using the same columns ----
-# From the current person, step to any friend m who still has a walk of
-# length (remaining - 1) to the recipient.
+# ---- Recover a shortest path using the same columns ----
 path = [s]
 current = s
 for remaining in range(distance, 0, -1):
