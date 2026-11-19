@@ -1,25 +1,22 @@
 import numpy as np
 import pandas as pd
 
-data = pd.read_csv("relationships.csv", usecols=[0, 1])
-data.columns = ["Person1", "Person2"]
-data = data.dropna()
-data["Person1"] = data["Person1"].astype(str).str.strip()
-data["Person2"] = data["Person2"].astype(str).str.strip()
-data = data[
-    (data["Person1"] != "")
-    & (data["Person2"] != "")
-    & (data["Person1"] != data["Person2"])
-]
-people = sorted(set(data["Person1"]) | set(data["Person2"]))
+data = pd.read_csv("responses.csv")
+data["Respondent"] = data["Respondent"].astype(str).str.strip()
+data["Person"] = data["Person"].astype(str).str.strip()
+
+people = sorted(set(data["Respondent"]) | set(data["Person"]))
 index = {person: i for i, person in enumerate(people)}
 n = len(people)
 
+known = data[data["Knows"] == 1]
+rows = known["Respondent"].map(index).to_numpy()
+cols = known["Person"].map(index).to_numpy()
+
 A = np.zeros((n, n), dtype=np.int64)
-rows = data["Person1"].map(index).to_numpy()
-cols = data["Person2"].map(index).to_numpy()
 A[rows, cols] = 1
 A[cols, rows] = 1
+np.fill_diagonal(A, 0)
 
 pd.DataFrame(A, index=people, columns=people).to_csv("adjacency_matrix.csv")
 
